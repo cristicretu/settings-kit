@@ -7,3 +7,5 @@ export * from "./settings-store";
 export * from "./settings-registry";
 export * from "./utils/search";
 export * from "./utils/keyboard";
+export * from "./components";
+export * from "./primitives";
