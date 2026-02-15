@@ -18,6 +18,13 @@ export type TextMatchRange = {
   end: number;
 };
 
+const RE_NON_ALNUM = /[^a-z0-9]+/g;
+const RE_EDGE_UNDERSCORES = /^_+|_+$/g;
+
+/** Converts a human-readable label to a stable settings ID slug. */
+export const toSettingId = (value: string): string =>
+  value.toLowerCase().replace(RE_NON_ALNUM, "_").replace(RE_EDGE_UNDERSCORES, "");
+
 const normalize = (value: string): string =>
   value
     .toLowerCase()

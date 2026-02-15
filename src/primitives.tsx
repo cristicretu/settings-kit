@@ -148,7 +148,7 @@ export type SettingsDialogProps = Omit<ComponentPropsWithoutRef<"dialog">, "open
 };
 
 export const SettingsDialog = forwardRef<HTMLDialogElement, SettingsDialogProps>(
-  ({ open, onOpenChange, children, ...rest }, ref) => {
+  ({ open, onOpenChange, onClick, children, ...rest }, ref) => {
     const innerRef = useRef<HTMLDialogElement>(null);
     const combinedRef = mergeRefs(ref, innerRef);
 
@@ -175,9 +175,9 @@ export const SettingsDialog = forwardRef<HTMLDialogElement, SettingsDialogProps>
         if (e.target === e.currentTarget) {
           onOpenChange?.(false);
         }
-        rest.onClick?.(e);
+        onClick?.(e);
       },
-      [onOpenChange, rest.onClick]
+      [onOpenChange, onClick]
     );
 
     return (

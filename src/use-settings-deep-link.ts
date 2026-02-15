@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type UseSettingsDeepLinkOptions = {
   param?: string;
@@ -20,6 +20,9 @@ export const useSettingsDeepLink = ({
 }: UseSettingsDeepLinkOptions): UseSettingsDeepLinkResult => {
   const hasWindow = typeof window !== "undefined";
 
+  const onNavigateRef = useRef(onNavigate);
+  onNavigateRef.current = onNavigate;
+
   const getCurrentPath = useCallback(() => {
     if (!hasWindow) {
       return null;
@@ -31,15 +34,15 @@ export const useSettingsDeepLink = ({
   const setPath = useCallback(
     (path: string) => {
       if (!hasWindow) {
-        onNavigate(path);
+        onNavigateRef.current(path);
         return;
       }
       const url = new URL(window.location.href);
       url.searchParams.set(param, path);
       window.history.replaceState(null, "", url.toString());
-      onNavigate(path);
+      onNavigateRef.current(path);
     },
-    [hasWindow, param, onNavigate]
+    [hasWindow, param]
   );
 
   const createLink = useCallback(
@@ -65,14 +68,14 @@ export const useSettingsDeepLink = ({
       const nextPath = getCurrentPath();
       setCurrentPath(nextPath);
       if (nextPath) {
-        onNavigate(nextPath);
+        onNavigateRef.current(nextPath);
       }
     };
 
     sync();
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
-  }, [getCurrentPath, hasWindow, onNavigate]);
+  }, [getCurrentPath, hasWindow]);
 
   const setPathWithState = useCallback(
     (path: string) => {

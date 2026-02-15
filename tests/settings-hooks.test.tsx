@@ -1,6 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { createSettingsStore, useSetting, useSettingDirty, visibleWhen } from "../src/settings-store";
+import { useSettingField } from "../src/use-setting-field";
 import { useSettingsField } from "../src/use-settings-field";
 
 type DemoState = {
@@ -112,5 +113,75 @@ describe("hook integrations", () => {
 
     const negative = visibleWhen(state, "appearance.theme", (_value: unknown, s: DemoState) => s.appearance.theme === "light");
     expect(negative).toBe(false);
+  });
+
+  it("useSettingField returns value and isDirty=false when unchanged", () => {
+    const store = createSettingsStore<DemoState>({
+      initialState: { appearance: { theme: "light" } }
+    });
+
+    let result: { value: unknown; isDirty: boolean } = { value: undefined, isDirty: true };
+
+    function Probe() {
+      const r = useSettingField<"light" | "dark", DemoState>("appearance.theme", {
+        defaultValue: "dark",
+        store,
+        label: "Theme"
+      });
+      result = { value: r.value, isDirty: r.isDirty };
+      return null;
+    }
+
+    renderToString(<Probe />);
+    expect(result.value).toBe("light");
+    expect(result.isDirty).toBe(false);
+  });
+
+  it("useSettingField tracks dirty when value changes", () => {
+    const store = createSettingsStore<DemoState>({
+      initialState: { appearance: { theme: "light" } }
+    });
+
+    let isDirty = false;
+
+    function Probe() {
+      const r = useSettingField<"light" | "dark", DemoState>("appearance.theme", {
+        defaultValue: "dark",
+        store,
+        label: "Theme"
+      });
+      isDirty = r.isDirty;
+      return null;
+    }
+
+    renderToString(<Probe />);
+    expect(isDirty).toBe(false);
+
+    store.set("appearance.theme", "dark");
+    renderToString(<Probe />);
+    expect(isDirty).toBe(true);
+  });
+
+  it("useSettingField isDirty is always false when dirty=false", () => {
+    const store = createSettingsStore<DemoState>({
+      initialState: { appearance: { theme: "light" } }
+    });
+
+    let isDirty = true;
+
+    function Probe() {
+      const r = useSettingField<"light" | "dark", DemoState>("appearance.theme", {
+        defaultValue: "dark",
+        store,
+        label: "Theme",
+        dirty: false
+      });
+      isDirty = r.isDirty;
+      return null;
+    }
+
+    store.set("appearance.theme", "dark");
+    renderToString(<Probe />);
+    expect(isDirty).toBe(false);
   });
 });
